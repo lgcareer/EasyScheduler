@@ -16,7 +16,7 @@
     <npm.version>6.4.1</npm.version>
   </properties>
 
-  <build>
+  <!--<build>
     <plugins>
       <plugin>
         <groupId>com.github.eirslett</groupId>
@@ -43,7 +43,7 @@
               <arguments>install</arguments>
             </configuration>
           </execution>
-         <!-- <execution>
+          <execution>
             <id>npm run unit</id>
             <phase>test</phase>
             <goals>
@@ -52,7 +52,7 @@
             <configuration>
               <arguments>run unit</arguments>
             </configuration>
-          </execution>-->
+          </execution>
           <execution>
             <id>npm run build</id>
             <goals>
@@ -65,5 +65,5 @@
         </executions>
       </plugin>
     </plugins>
-  </build>
+  </build>-->
 </project>
