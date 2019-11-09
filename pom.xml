@@ -23,10 +23,10 @@
 		<tag>1.2.3</tag>
 	</scm>-->
 	<scm>
-		<connection>scm:git:https://github.com/dailidong/DolphinScheduler.git</connection>
-		<developerConnection>scm:git:https://github.com/dailidong/DolphinScheduler.git</developerConnection>
-		<url>https://github.com/dailidong/DolphinScheduler.git</url>
-		<tag>1.2.3</tag>
+		<connection>scm:git:https://github.com/apache/incubator-dolphinscheduler.git</connection>
+		<developerConnection>scm:git:https://github.com/apache/incubator-dolphinscheduler.git</developerConnection>
+		<url>https://github.com/apache/incubator-dolphinscheduler.git</url>
+		<tag>head</tag>
 	</scm>
 	<mailingLists>
 		<mailingList>
