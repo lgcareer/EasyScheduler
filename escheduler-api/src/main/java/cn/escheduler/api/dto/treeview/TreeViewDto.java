@@ -25,6 +25,11 @@ import java.util.List;
 public class TreeViewDto {
 
     /**
+     * id
+     */
+    private int id;
+
+    /**
      * name
      */
     private String name;
