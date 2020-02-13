@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Resource View Dto
+ * ResourceComponent View Dto
  */
 @JSONType(orders={"id","pid","alias","type","permission","children"})
 public class ResourceViewDto implements Comparable<ResourceViewDto>{

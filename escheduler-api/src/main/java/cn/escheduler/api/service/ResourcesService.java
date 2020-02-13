@@ -488,7 +488,7 @@ public class ResourcesService extends BaseService {
             map.put(CONTENT, StringUtils.join(content.toArray(), "\n"));
             result.setData(map);
         } catch (Exception e) {
-            logger.error(String.format("Resource %s read failed", hdfsFileName), e);
+            logger.error(String.format("ResourceComponent %s read failed", hdfsFileName), e);
             putMsg(result, Status.HDFS_OPERATION_ERROR);
         }
 

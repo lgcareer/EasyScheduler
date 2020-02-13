@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Resource Tree Builder
+ * ResourceComponent Tree Builder
  */
 public class ResourceTreeBuilder {
 

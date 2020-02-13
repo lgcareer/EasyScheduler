@@ -47,6 +47,14 @@ public class Resource {
   private String fileName;
 
   /**
+   * full name
+   */
+  private String fullName;
+  /**
+   * is directory
+   */
+  private boolean isDirectory;
+  /**
    * user id
    */
   private int userId;
@@ -105,6 +113,21 @@ public class Resource {
     this.alias = alias;
     this.fileName = fileName;
     this.desc = desc;
+    this.userId = userId;
+    this.type = type;
+    this.size = size;
+    this.createTime = createTime;
+    this.updateTime = updateTime;
+  }
+
+  public Resource(int id, int pid, String alias, String desc, String fileName, String fullName, boolean isDirectory, int userId, ResourceType type, long size, Date createTime, Date updateTime) {
+    this.id = id;
+    this.pid = pid;
+    this.alias = alias;
+    this.desc = desc;
+    this.fileName = fileName;
+    this.fullName = fullName;
+    this.isDirectory = isDirectory;
     this.userId = userId;
     this.type = type;
     this.size = size;
@@ -191,6 +214,22 @@ public class Resource {
 
   public void setUpdateTime(Date updateTime) {
     this.updateTime = updateTime;
+  }
+
+  public String getFullName() {
+    return fullName;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
+
+  public boolean isDirectory() {
+    return isDirectory;
+  }
+
+  public void setDirectory(boolean directory) {
+    isDirectory = directory;
   }
 
   @Override
