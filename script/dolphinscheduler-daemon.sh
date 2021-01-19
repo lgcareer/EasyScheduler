@@ -91,7 +91,7 @@ elif [ "$command" = "combined-server" ]; then
   HEAP_MAX_SIZE=1g
   HEAP_NEW_GENERATION__SIZE=500m
   LOG_FILE="-Dspring.profiles.active=combined"
-  CLASS=org.apache.dolphinscheduler.api.CombinedApplicationServer
+  CLASS=org.apache.dolphinscheduler.combine.CombinedApplicationServer
 else
   echo "Error: No command named \`$command' was found."
   exit 1
