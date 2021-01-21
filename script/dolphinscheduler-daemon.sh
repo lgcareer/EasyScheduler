@@ -87,9 +87,9 @@ elif [ "$command" = "logger-server" ]; then
   HEAP_NEW_GENERATION__SIZE=500m
   CLASS=org.apache.dolphinscheduler.server.log.LoggerServer
 elif [ "$command" = "combined-server" ]; then
-  HEAP_INITIAL_SIZE=1g
-  HEAP_MAX_SIZE=1g
-  HEAP_NEW_GENERATION__SIZE=500m
+  HEAP_INITIAL_SIZE=512m
+  HEAP_MAX_SIZE=512m
+  HEAP_NEW_GENERATION__SIZE=256m
   LOG_FILE="-Dspring.profiles.active=combined"
   CLASS=org.apache.dolphinscheduler.combine.CombinedApplicationServer
 else
