@@ -16,17 +16,7 @@
  */
 package org.apache.dolphinscheduler.server.worker.registry;
 
-import static org.apache.dolphinscheduler.common.Constants.DEFAULT_WORKER_GROUP;
-import static org.apache.dolphinscheduler.common.Constants.SLASH;
-
-import java.util.Date;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-
+import com.google.common.collect.Sets;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
@@ -43,8 +33,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Sets;
-import com.google.common.collect.Sets;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.dolphinscheduler.common.Constants.DEFAULT_WORKER_GROUP;
+import static org.apache.dolphinscheduler.common.Constants.SLASH;
 
 
 /**
@@ -88,7 +85,15 @@ public class WorkerRegistry {
     }
 
     /**
-     *  registry
+     * get zookeeper registry center
+     * @return ZookeeperRegistryCenter
+     */
+    public ZookeeperRegistryCenter getZookeeperRegistryCenter() {
+        return zookeeperRegistryCenter;
+    }
+
+    /**
+     * registry
      */
     public void registry() {
         String address = OSUtils.getHost();
@@ -96,15 +101,15 @@ public class WorkerRegistry {
         int workerHeartbeatInterval = workerConfig.getWorkerHeartbeatInterval();
 
         for (String workerZKPath : workerZkPaths) {
-            zookeeperRegistryCenter.getZookeeperCachedOperator().persistEphemeral(workerZKPath, "");
-            zookeeperRegistryCenter.getZookeeperCachedOperator().getZkClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
+            zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(workerZKPath, "");
+            zookeeperRegistryCenter.getRegisterOperator().getZkClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
                 @Override
                 public void stateChanged(CuratorFramework client, ConnectionState newState) {
                     if (newState == ConnectionState.LOST) {
                         logger.error("worker : {} connection lost from zookeeper", address);
                     } else if (newState == ConnectionState.RECONNECTED) {
                         logger.info("worker : {} reconnected to zookeeper", address);
-                        zookeeperRegistryCenter.getZookeeperCachedOperator().persistEphemeral(workerZKPath, "");
+                        zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(workerZKPath, "");
                     } else if (newState == ConnectionState.SUSPENDED) {
                         logger.warn("worker : {} connection SUSPENDED ", address);
                     }
@@ -117,6 +122,7 @@ public class WorkerRegistry {
                 this.workerConfig.getWorkerReservedMemory(),
                 this.workerConfig.getWorkerMaxCpuloadAvg(),
                 workerZkPaths,
+                Constants.WORKER_PREFIX,
                 this.zookeeperRegistryCenter);
 
         this.heartBeatExecutor.scheduleAtFixedRate(heartBeatTask, workerHeartbeatInterval, workerHeartbeatInterval, TimeUnit.SECONDS);
@@ -130,7 +136,7 @@ public class WorkerRegistry {
         String address = getLocalAddress();
         Set<String> workerZkPaths = getWorkerZkPaths();
         for (String workerZkPath : workerZkPaths) {
-            zookeeperRegistryCenter.getZookeeperCachedOperator().remove(workerZkPath);
+            zookeeperRegistryCenter.getRegisterOperator().remove(workerZkPath);
             logger.info("worker node : {} unRegistry from ZK {}.", address, workerZkPath);
         }
         this.heartBeatExecutor.shutdownNow();
@@ -139,7 +145,7 @@ public class WorkerRegistry {
     /**
      *  get worker path
      */
-    private Set<String> getWorkerZkPaths() {
+    public Set<String> getWorkerZkPaths() {
         Set<String> workerZkPaths = Sets.newHashSet();
 
         String address = getLocalAddress();

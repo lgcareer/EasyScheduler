@@ -17,6 +17,8 @@
 package org.apache.dolphinscheduler.server.worker;
 
 import org.apache.dolphinscheduler.common.Constants;
+import org.apache.dolphinscheduler.common.IStoppable;
+import org.apache.dolphinscheduler.common.enums.ZKNodeType;
 import org.apache.dolphinscheduler.common.thread.Stopper;
 import org.apache.dolphinscheduler.remote.NettyRemotingServer;
 import org.apache.dolphinscheduler.remote.command.CommandType;
@@ -37,12 +39,13 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.ComponentScan;
 
 import javax.annotation.PostConstruct;
+import java.util.Set;
 
 /**
  *  worker server
  */
 @ComponentScan("org.apache.dolphinscheduler")
-public class WorkerServer {
+public class WorkerServer implements IStoppable {
 
     /**
      * logger
@@ -93,23 +96,31 @@ public class WorkerServer {
      */
     @PostConstruct
     public void run(){
-        logger.info("start worker server...");
+        try {
+            logger.info("start worker server...");
 
-        //init remoting server
-        NettyServerConfig serverConfig = new NettyServerConfig();
-        serverConfig.setListenPort(workerConfig.getListenPort());
-        this.nettyRemotingServer = new NettyRemotingServer(serverConfig);
-        this.nettyRemotingServer.registerProcessor(CommandType.TASK_EXECUTE_REQUEST, new TaskExecuteProcessor());
-        this.nettyRemotingServer.registerProcessor(CommandType.TASK_KILL_REQUEST, new TaskKillProcessor());
-        this.nettyRemotingServer.registerProcessor(CommandType.DB_TASK_ACK, new DBTaskAckProcessor());
-        this.nettyRemotingServer.registerProcessor(CommandType.DB_TASK_RESPONSE, new DBTaskResponseProcessor());
-        this.nettyRemotingServer.start();
+            //init remoting server
+            NettyServerConfig serverConfig = new NettyServerConfig();
+            serverConfig.setListenPort(workerConfig.getListenPort());
+            this.nettyRemotingServer = new NettyRemotingServer(serverConfig);
+            this.nettyRemotingServer.registerProcessor(CommandType.TASK_EXECUTE_REQUEST, new TaskExecuteProcessor());
+            this.nettyRemotingServer.registerProcessor(CommandType.TASK_KILL_REQUEST, new TaskKillProcessor());
+            this.nettyRemotingServer.registerProcessor(CommandType.DB_TASK_ACK, new DBTaskAckProcessor());
+            this.nettyRemotingServer.registerProcessor(CommandType.DB_TASK_RESPONSE, new DBTaskResponseProcessor());
+            this.nettyRemotingServer.start();
 
-        // worker registry
-        this.workerRegistry.registry();
+            this.workerRegistry.getZookeeperRegistryCenter().setStoppable(this);
+            Set<String> workerZkPaths = this.workerRegistry.getWorkerZkPaths();
+            this.workerRegistry.getZookeeperRegistryCenter().getRegisterOperator().handleDeadServer(workerZkPaths, ZKNodeType.WORKER,Constants.DELETE_ZK_OP);
+            // worker registry
+            this.workerRegistry.registry();
 
-        // retry report task status
-        this.retryReportTaskStatusThread.start();
+            // retry report task status
+            this.retryReportTaskStatusThread.start();
+        } catch (Exception e) {
+            logger.error(e.getMessage(),e);
+            throw new RuntimeException(e);
+        }
 
         /**
          * register hooks, which are called before the process exits
@@ -117,7 +128,9 @@ public class WorkerServer {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                close("shutdownHook");
+                if (Stopper.isRunning()) {
+                    close("shutdownHook");
+                }
             }
         }));
     }
@@ -147,8 +160,13 @@ public class WorkerServer {
 
         } catch (Exception e) {
             logger.error("worker server stop exception ", e);
+        } finally {
             System.exit(-1);
         }
     }
 
+    @Override
+    public void stop(String cause) {
+        close(cause);
+    }
 }

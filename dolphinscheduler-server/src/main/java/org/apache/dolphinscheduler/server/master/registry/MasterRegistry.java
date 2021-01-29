@@ -85,15 +85,15 @@ public class MasterRegistry {
     public void registry() {
         String address = OSUtils.getHost();
         String localNodePath = getMasterPath();
-        zookeeperRegistryCenter.getZookeeperCachedOperator().persistEphemeral(localNodePath, "");
-        zookeeperRegistryCenter.getZookeeperCachedOperator().getZkClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
+        zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(localNodePath, "");
+        zookeeperRegistryCenter.getRegisterOperator().getZkClient().getConnectionStateListenable().addListener(new ConnectionStateListener() {
             @Override
             public void stateChanged(CuratorFramework client, ConnectionState newState) {
                 if(newState == ConnectionState.LOST){
                     logger.error("master : {} connection lost from zookeeper", address);
                 } else if(newState == ConnectionState.RECONNECTED){
                     logger.info("master : {} reconnected to zookeeper", address);
-                    zookeeperRegistryCenter.getZookeeperCachedOperator().persistEphemeral(localNodePath, "");
+                    zookeeperRegistryCenter.getRegisterOperator().persistEphemeral(localNodePath, "");
                 } else if(newState == ConnectionState.SUSPENDED){
                     logger.warn("master : {} connection SUSPENDED ", address);
                 }
@@ -104,6 +104,7 @@ public class MasterRegistry {
                 masterConfig.getMasterReservedMemory(),
                 masterConfig.getMasterMaxCpuloadAvg(),
                 Sets.newHashSet(getMasterPath()),
+                Constants.MASTER_PREFIX,
                 zookeeperRegistryCenter);
 
         this.heartBeatExecutor.scheduleAtFixedRate(heartBeatTask, masterHeartbeatInterval, masterHeartbeatInterval, TimeUnit.SECONDS);
@@ -116,7 +117,7 @@ public class MasterRegistry {
     public void unRegistry() {
         String address = getLocalAddress();
         String localNodePath = getMasterPath();
-        zookeeperRegistryCenter.getZookeeperCachedOperator().remove(localNodePath);
+        zookeeperRegistryCenter.getRegisterOperator().remove(localNodePath);
         logger.info("master node : {} unRegistry to ZK.", address);
     }
 
@@ -124,7 +125,7 @@ public class MasterRegistry {
      *  get master path
      * @return
      */
-    private String getMasterPath() {
+    public String getMasterPath() {
         String address = getLocalAddress();
         String localNodePath = this.zookeeperRegistryCenter.getMasterPath() + "/" + address;
         return localNodePath;
@@ -136,6 +137,18 @@ public class MasterRegistry {
      */
     private String getLocalAddress(){
         return OSUtils.getHost() + Constants.COLON + masterConfig.getListenPort();
+    }
+
+    public ZookeeperRegistryCenter getZookeeperRegistryCenter() {
+        return zookeeperRegistryCenter;
+    }
+
+    protected String getDeadZNodeParentPath(){
+        return zookeeperRegistryCenter.getRegisterOperator().getZookeeperConfig().getDsRoot() + Constants.ZOOKEEPER_DOLPHINSCHEDULER_DEAD_SERVERS;
+    }
+
+    public void initSystemNode() {
+        zookeeperRegistryCenter.getRegisterOperator().persist(getDeadZNodeParentPath(),"");
     }
 
 }
