@@ -317,6 +317,34 @@ public class ProcessDefinitionService extends BaseDAGService {
     }
 
     /**
+     * query process definition by name
+     * @param loginUser             login user
+     * @param projectName           project name
+     * @param processDefinitionName process definition name
+     * @return process definition detail
+     */
+    public Map<String, Object> queryProcessDefinitionByName(User loginUser, String projectName, String processDefinitionName) {
+
+        Map<String, Object> result = new HashMap<>();
+        Project project = projectMapper.queryByName(projectName);
+
+        Map<String, Object> checkResult = projectService.checkProjectAndAuth(loginUser, project, projectName);
+        Status resultStatus = (Status) checkResult.get(Constants.STATUS);
+        if (resultStatus != Status.SUCCESS) {
+            return checkResult;
+        }
+
+        ProcessDefinition processDefinition = processDefineMapper.queryByDefineName(project.getId(),processDefinitionName);
+        if (processDefinition == null) {
+            putMsg(result, Status.PROCESS_DEFINE_NOT_EXIST, processDefinitionName);
+        } else {
+            result.put(Constants.DATA_LIST, processDefinition);
+            putMsg(result, Status.SUCCESS);
+        }
+        return result;
+    }
+
+    /**
      * copy process definition
      *
      * @param loginUser login user
